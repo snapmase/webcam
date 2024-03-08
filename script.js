@@ -27,7 +27,8 @@ async function setupWebcam() {
   const constraints = {
     video: {
       width: { ideal: width },
-      height: { ideal: height }
+      height: { ideal: height },
+      deviceId: { ideal: 'db84ca4a695ce5f97f4c10dbe80f1657a42c928e914a2141beec8bc62792304b' },
     }
   };
 
@@ -57,12 +58,13 @@ function enterFullscreen(element) {
   }
 }
 
-setupWebcam().then(() => {
-  const fullscreenEl = document.getElementById('fullscreen');
-  const videoEl = document.getElementById('webcam');
+setTimeout(() => {
+  setupWebcam().then(() => {
+    const fullscreenEl = document.getElementById('fullscreen');
+    const videoEl = document.getElementById('webcam');
 
-  fullscreenEl.addEventListener('click', () => {
-    enterFullscreen(videoEl);
+    fullscreenEl.addEventListener('click', () => {
+      enterFullscreen(videoEl);
+    });
   });
-});
-
+}, 1000);
