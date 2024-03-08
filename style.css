@@ -29,3 +29,15 @@ html {
 video::-webkit-media-controls {
   display: none;
 }
+
+.devicesContainer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  padding: 20px;
+  opacity: 0;
+}
+
+.devicesContainer:hover {
+  opacity: 1;
+}

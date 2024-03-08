@@ -1,4 +1,6 @@
-async function setupWebcam() {
+let stream;
+
+async function setupWebcam(deviceId = null) {
   const params = new URLSearchParams(window.location.search);
   let width, height;
 
@@ -27,13 +29,22 @@ async function setupWebcam() {
   const constraints = {
     video: {
       width: { ideal: width },
-      height: { ideal: height },
-      deviceId: { ideal: 'db84ca4a695ce5f97f4c10dbe80f1657a42c928e914a2141beec8bc62792304b' },
+      height: { ideal: height }
     }
   };
 
+  if (deviceId) {
+    constraints.video.deviceId = { exact: deviceId };
+  }
+
   try {
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    if (stream) {
+      const track = stream.getVideoTracks()[0]
+      track.stop();
+    }
+
+    stream = await navigator.mediaDevices.getUserMedia(constraints);
+
     const videoEl = document.getElementById('webcam');
     videoEl.srcObject = stream;
 
@@ -49,22 +60,47 @@ async function setupWebcam() {
 function enterFullscreen(element) {
   if (element.requestFullscreen) {
     element.requestFullscreen();
-  } else if (element.mozRequestFullScreen) { /* Firefox */
+  } else if (element.mozRequestFullScreen) {
     element.mozRequestFullScreen();
-  } else if (element.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+  } else if (element.webkitRequestFullscreen) {
     element.webkitRequestFullscreen();
-  } else if (element.msRequestFullscreen) { /* IE/Edge */
+  } else if (element.msRequestFullscreen) {
     element.msRequestFullscreen();
   }
 }
 
-setTimeout(() => {
-  setupWebcam().then(() => {
-    const fullscreenEl = document.getElementById('fullscreen');
-    const videoEl = document.getElementById('webcam');
+async function updateDeviceList() {
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  const videoInputDevices = devices.filter(device => device.kind === 'videoinput');
 
-    fullscreenEl.addEventListener('click', () => {
-      enterFullscreen(videoEl);
-    });
+  const deviceSelector = document.getElementById('devices');
+  deviceSelector.innerHTML = '';
+
+  videoInputDevices.forEach(device => {
+    const option = document.createElement('option');
+    option.value = device.deviceId;
+    option.text = device.label || `Camera ${deviceSelector.length + 1}`;
+    deviceSelector.appendChild(option);
   });
-}, 1000);
+
+  // Attach an event listener for device changes
+  deviceSelector.onchange = async () => {
+    const selectedDeviceId = deviceSelector.value;
+    await setupWebcam(selectedDeviceId);
+  };
+}
+
+navigator.mediaDevices.ondevicechange = () => updateDeviceList();
+
+
+setupWebcam().then(() => {
+  updateDeviceList();
+
+  const fullscreenEl = document.getElementById('fullscreen');
+  const videoEl = document.getElementById('webcam');
+
+  fullscreenEl.addEventListener('click', () => {
+    enterFullscreen(videoEl);
+  });
+});
+
