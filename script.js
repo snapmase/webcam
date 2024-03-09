@@ -22,8 +22,8 @@ async function setupWebcam(deviceId = null) {
       height = 480;
       break;
     default:
-      width = 3840;
-      height = 2160;
+      width = 1920;
+      height = 1080;
   }
 
   const constraints = {
